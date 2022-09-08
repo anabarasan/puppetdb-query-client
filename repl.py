@@ -11,9 +11,6 @@ APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @route("/static/<filename:path>")
 def static_routes(filename):
-    print(__name__)
-    print(APP_DIR)
-    print(filename)
     return static_file(filename, root=f"{APP_DIR}/static")
 
 @route("/", method=["GET", "POST"])

@@ -1,5 +1,10 @@
 <!doctype html>
 <html>
+  <head>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <script src="/static/jsonFormatter.js"></script>
+    <link href="/static/jsonFormatter.css" type="text/css" rel="stylesheet">
+  </head>
   <body>
     <form method="post">
       <textarea style="width:100%; height:100px;" id="txt_query" name="txt_query">{{query}}</textarea>
@@ -19,11 +24,12 @@
       <pre id="json-renderer" class="json-tree" style="margin-top:10px;">
       </pre>
       <script>
-        const source = document.getElementById("json-input");
-        const dest = document.getElementById("json-renderer");
-        const pretty_json = JSON.stringify(JSON.parse(source.innerHTML), null, 2);
-        dest.innerHTML = pretty_json;
-        source.style.display = "none";
+        $('#json-input').jsonFormatter();
+        //const source = document.getElementById("json-input");
+        //const dest = document.getElementById("json-renderer");
+        //const pretty_json = JSON.stringify(JSON.parse(source.innerHTML), null, 2);
+        //dest.innerHTML = pretty_json;
+        //source.style.display = "none";
       </script>
       %end
     %end
