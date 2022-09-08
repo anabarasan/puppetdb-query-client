@@ -18,7 +18,6 @@
       </div>
       <pre id="json-renderer" class="json-tree" style="margin-top:10px;">
       </pre>
-      <input class="path" type="text"/>
       <script>
         const source = document.getElementById("json-input");
         const dest = document.getElementById("json-renderer");

@@ -1,60 +1,48 @@
 #!/usr/bin/env python3
 import json
-import shlex
 import socket
-import subprocess
+import urllib.parse
 
-def execute(query):
-    hostname = socket.gethostname()
+import requests
 
-    CMD = (
-        """curl -X GET --cacert /etc/puppetlabs/puppet/ssl/certs/ca.pem """
-        f"""--tlsv1 --cert /etc/puppetlabs/puppet/ssl/certs/{hostname}.pem """
-        f"""--key /etc/puppetlabs/puppet/ssl/private_keys/{hostname}.pem  """
-        f"""https://{hostname}:8082/pdb/query/v4 --data-urlencode 'query={query}'"""
-    )
+class Db:
 
-    args = shlex.split(CMD)
+    def __init__(self, host=None, ssl_dir="/etc/puppetlabs/puppet/ssl"):
+        self.host = socket.gethostname() if host is None else host
+        self.ca = f"{ssl_dir}/certs/ca.pem"
+        self.cert = (f"{ssl_dir}/certs/{self.host}.pem",
+                     f"{ssl_dir}/private_keys/{self.host}.pem")
 
-    result = {
-        "error": False,
-        "error_msg": None,
-        "output": None,
-    }
+    def execute(self, query):
+        result = {
+            "error": False,
+            "error_msg": None,
+            "output": None,
+        }
+        headers = {
+            'Accept': 'application/json',
+            'Content-type': 'application/json',
+        }
+        params = urllib.parse.urlencode({"query": query})
+        url = f"https://{self.host}:8082/pdb/query/v4?{params}"
 
-    with subprocess.Popen(args,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE,
-                          encoding="utf-8") as proc:
-        out, err = proc.communicate()
-        return_code = proc.returncode
-
-        print("*" * 80)
-        print(return_code)
-        print("*" * 80)
-        print(out)
-        print("*" * 80)
-        print(err)
-        print("*" * 80)
-
-        if return_code != 0:
+        response = requests.get(url, verify=self.ca, cert=self.cert, headers=headers)
+        try:
+            response.raise_for_status()
+            result["output"] = json.dumps(response.json(), indent=2)
+        except Exception as exn:
             result["error"] = True
-            result["error_msg"] = err
-        else:
-            try:
-                result["output"] = json.dumps(json.loads(out), indent=2)
-            except Exception as exn:
-                print(exn)
-                result["error"] = True
-                result["error_msg"] = out
+            result["error_msg"] = response.text
 
-    return result
+        return result
 
 if __name__ == "__main__":
     query = """fact_contents[value] {
-        name="velocix_facts" and 
-        path=["velocix_facts", "interfaces", "public"] and 
-        certname="us1.vcdn14chn1s1.cdn" 
+        name="velocix_facts" and
+        path=["velocix_facts", "interfaces", "public"] and
+        certname="us1.vcdn14chn1s1.cdn"
     }"""
-    output = execute(query)
+    db = Db()
+    output = db.execute(query)
     print(output)
+

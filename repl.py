@@ -3,7 +3,7 @@ import os
 
 from bottle import route, run, debug, template, request, static_file
 
-import query
+from query import Db
 
 debug(True)
 
@@ -20,13 +20,8 @@ def static_routes(filename):
 def home():
      
     if request.method == "POST":
-        #myquery = """fact_contents[value] {
-        #    name="velocix_facts" and 
-        #    path=["velocix_facts", "interfaces", "public"] and 
-        #    certname="us1.ag1chn1s1.cdn" 
-        #}"""
         myquery = request.forms.get("txt_query")
-        result = query.execute(myquery)
+        result = Db().execute(myquery)
         output = template('repl', query=myquery, result=result)
         return output
     return template('repl', query="", result={})
